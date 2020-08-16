@@ -1,0 +1,59 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: 'Amazon EKS Cluster Role'
+
+Parameters:
+
+  ClusterControlPlaneSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup::Id"
+    Description: The security group of the cluster control plane.
+
+  ClusterName:
+    Type: String
+    Description: The cluster name provided when the cluster was created. If it is incorrect, nodes will not be able to join the cluster.
+
+  KubernetesVersion:
+    Type: String
+    Default: '1.16'
+    Description: Version of the Kubernetes Control Plane.
+
+  SubnetIds:
+    Type: "List<AWS::EC2::Subnet::Id>"
+    Description: The subnets where workers can be created.
+
+Resources:
+
+  eksCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: !Ref ClusterName
+      Version: !Ref KubernetesVersion
+      RoleArn:  !GetAtt eksClusterRole.Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - !Ref ClusterControlPlaneSecurityGroup
+        SubnetIds: !Ref SubnetIds
+
+  eksClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - eks.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+      
+Outputs:
+
+  ClusterName:
+    Description: EKS Cluster Name
+    Value: !Ref ClusterName
+    Export:
+      Name: !Sub "${ClusterName}-ClusterName"

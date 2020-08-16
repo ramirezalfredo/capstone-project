@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: AWS EKS Cluster for Project Capstone
+
+Parameters:
+  VpcBlock:
+    Type: String
+    Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
+
+  PublicSubnet01Block:
+    Type: String
+    Description: CidrBlock for public subnet 01 within the VPC
+
+  PublicSubnet02Block:
+    Type: String
+    Description: CidrBlock for public subnet 02 within the VPC
+
+  PrivateSubnet01Block:
+    Type: String
+    Description: CidrBlock for private subnet 01 within the VPC
+
+  PrivateSubnet02Block:
+    Type: String
+    Description: CidrBlock for private subnet 02 within the VPC
+
+  BootstrapArguments:
+    Type: String
+    Default: ""
+    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+
+  ClusterName:
+    Type: String
+    Description: The cluster name provided when the cluster was created. If it is incorrect, nodes will not be able to join the cluster.
+
+  KubernetesVersion:
+    Type: String
+    Description: Version of the Kubernetes Control Plane.
+
+  KeyName:
+    Type: String
+    Description: Key name for SSH connections.
+
+  NodeAutoScalingGroupDesiredCapacity:
+    Type: Number
+    Description: Desired capacity of Node Group ASG.
+
+  NodeAutoScalingGroupMaxSize:
+    Type: Number
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredCapacity.
+
+  NodeAutoScalingGroupMinSize:
+    Type: Number
+    Description: Minimum size of Node Group ASG.
+
+  NodeGroupName:
+    Type: String
+    Description: Unique identifier for the Node Group.
+
+  # NodeImageIdSSMParam:
+  #   Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+  #   Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances.
+
+  NodeInstanceType:
+    Type: String
+
+  NodeVolumeSize:
+    Type: Number
+    Description: Node volume size.
+
+  SpotPrice:
+    Type: String
+    Description: Spot pricing.
+
+Resources: 
+
+  VPC: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: "https://s3.us-east-2.amazonaws.com/alfredos-eks-templates/eks-vpc.yaml"
+      Parameters: 
+        VpcBlock: !Ref VpcBlock
+        PublicSubnet01Block: !Ref PublicSubnet01Block
+        PublicSubnet02Block: !Ref PublicSubnet02Block
+        PrivateSubnet01Block: !Ref PrivateSubnet01Block
+        PrivateSubnet02Block: !Ref PrivateSubnet02Block
+
+  ControlPlane: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: "https://s3.us-east-2.amazonaws.com/alfredos-eks-templates/eks-cluster.yaml"
+      Parameters: 
+        ClusterControlPlaneSecurityGroup: !GetAtt VPC.Outputs.SecurityGroups
+        ClusterName: !Ref ClusterName
+        KubernetesVersion: !Ref KubernetesVersion
+        SubnetIds: !GetAtt VPC.Outputs.SubnetIds
+
+  NodeGroup: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: "https://s3.us-east-2.amazonaws.com/alfredos-eks-templates/eks-nodegroup.yaml"
+      Parameters:
+        BootstrapArguments: !Ref BootstrapArguments
+        ClusterControlPlaneSecurityGroup: !GetAtt VPC.Outputs.SecurityGroups
+        ClusterName: !GetAtt ControlPlane.Outputs.ClusterName
+        KeyName: !Ref KeyName
+        NodeAutoScalingGroupDesiredCapacity: !Ref NodeAutoScalingGroupDesiredCapacity
+        NodeAutoScalingGroupMaxSize: !Ref NodeAutoScalingGroupMaxSize
+        NodeAutoScalingGroupMinSize: !Ref NodeAutoScalingGroupMinSize
+        NodeGroupName: !Ref NodeGroupName
+        NodeImageIdSSMParam: !Sub "/aws/service/eks/optimized-ami/${KubernetesVersion}/amazon-linux-2/recommended/image_id"
+        NodeInstanceType: !Ref NodeInstanceType
+        NodeVolumeSize: !Ref NodeVolumeSize
+        SpotPrice: !Ref SpotPrice
+        Subnets: !GetAtt VPC.Outputs.WorkerSubnetIds
+        VpcId: !GetAtt VPC.Outputs.VpcId

@@ -1,0 +1,11 @@
+
+[
+    {
+        "ParameterKey": "BootstrapArguments",
+        "ParameterValue": "--kubelet-extra-args --node-labels=node.kubernetes.io/nodegroup=BUILD"
+    },
+    {
+        "ParameterKey": "NodeGroupName",
+        "ParameterValue": "BUILD"
+    }
+]

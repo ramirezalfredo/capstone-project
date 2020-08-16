@@ -1,0 +1,67 @@
+
+[
+    {
+        "ParameterKey": "VpcBlock",
+        "ParameterValue": "192.168.0.0/16"
+    },
+    {
+        "ParameterKey": "PublicSubnet01Block",
+        "ParameterValue": "192.168.0.0/18"
+    },
+    {
+        "ParameterKey": "PublicSubnet02Block",
+        "ParameterValue": "192.168.64.0/18"
+    },
+    {
+        "ParameterKey": "PrivateSubnet01Block",
+        "ParameterValue": "192.168.128.0/18"
+    },
+    {
+        "ParameterKey": "PrivateSubnet02Block",
+        "ParameterValue": "192.168.192.0/18"
+    },
+    {
+        "ParameterKey": "ClusterName",
+        "ParameterValue": "CapstoneEKS"
+    },
+    {
+        "ParameterKey": "KubernetesVersion",
+        "ParameterValue": "1.17"
+    },
+    {
+        "ParameterKey": "BootstrapArguments",
+        "ParameterValue": "--kubelet-extra-args --node-labels=node.kubernetes.io/nodegroup=system"
+    },
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "Alfredo-Mac"
+    },
+    {
+        "ParameterKey": "NodeInstanceType",
+        "ParameterValue": "t3a.medium"
+    },
+    {
+        "ParameterKey": "NodeVolumeSize",
+        "ParameterValue": "20"
+    },
+    {
+        "ParameterKey": "NodeAutoScalingGroupDesiredCapacity",
+        "ParameterValue": "1"
+    },
+    {
+        "ParameterKey": "NodeAutoScalingGroupMaxSize",
+        "ParameterValue": "2"
+    },
+    {
+        "ParameterKey": "NodeAutoScalingGroupMinSize",
+        "ParameterValue": "0"
+    },
+    {
+        "ParameterKey": "NodeGroupName",
+        "ParameterValue": "System"
+    },
+    {
+        "ParameterKey": "SpotPrice",
+        "ParameterValue": "0.0376"
+    }
+]
