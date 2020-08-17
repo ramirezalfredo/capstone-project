@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-flask
+  name: hello-flask
+spec:
+  selector:
+    matchLabels:
+      app: hello-flash
+  template:
+    metadata:
+      labels:
+        app: hello-flask
+    spec:
+      containers:
+      - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:1
+        imagePullPolicy: IfNotPresent
+        name: hello-flask
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30

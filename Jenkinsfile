@@ -5,43 +5,36 @@ pipeline {
     }
     stages {
         stage('Linting App and Dockerfile') {
-            // when {
-            //     branch 'development'
-            // }
+            when {
+                branch 'development'
+            }
             steps {
-                // echo 'Building Pet Clinic with Maven'
-                // sh './mvnw package'
+                echo 'Linting Python code and Dockerfile'
+                sh 'pytlint *.py'
                 echo 'Running hadolint'
                 sh 'hadolint Dockerfile'
             }
         }
-        stage('Build Docker') {
-            // when {
-            //     branch 'staging'
-            // }
-            steps {
-                echo 'Building Pet Clinic Docker container after linting'
-                sh 'docker build -t spring-petclinic:${BUILD_NUMBER} .'
-            }
-        }
         stage('Security Scan') {
-            // when {
-            //     branch 'staging'
-            // }
+            when {
+                branch 'staging'
+            }
             steps {
                 echo 'Starting security scan for the Docker image'
                 // aquaMicroscanner imageName: 'alpine:latest', notCompliesCmd: 'exit 1', onDisallowed: 'fail', outputFormat: 'html'
                 sh 'trivy --exit-code 0 --no-progress spring-petclinic:${BUILD_NUMBER}'
             }
         }
-        stage('Push to ECR') {
-            // when {
-            //     branch 'deployment'
-            // }
+        stage('Docker Build and Push to ECR') {
+            when {
+                branch 'deployment'
+            }
             steps {
                 echo 'Uploading container to ECR with AWS creds'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
+                        echo 'Building Docker container'
+                        docker build -t spring-petclinic:${BUILD_NUMBER} .
                         aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 866421524471.dkr.ecr.us-east-2.amazonaws.com
                         docker tag spring-petclinic:${BUILD_NUMBER} 866421524471.dkr.ecr.us-east-2.amazonaws.com/spring-petclinic:${BUILD_NUMBER}
                         docker push 866421524471.dkr.ecr.us-east-2.amazonaws.com/spring-petclinic:${BUILD_NUMBER}
