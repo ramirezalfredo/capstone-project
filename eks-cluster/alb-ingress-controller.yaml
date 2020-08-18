@@ -76,7 +76,7 @@ rbac:
 
     ## Annotations for the Service Account
     annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::866421524471:policy/AllowAlbIngressControllerUpdates
+      eks.amazonaws.com/role-arn: arn:aws:iam::866421524471:role/AlbIngressControllerRole
 
 image:
   repository: docker.io/amazon/aws-alb-ingress-controller

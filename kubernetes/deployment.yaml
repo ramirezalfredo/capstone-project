@@ -14,12 +14,10 @@ spec:
         app: hello-flask
     spec:
       containers:
-      - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:1
+      - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:TAG
         imagePullPolicy: IfNotPresent
         name: hello-flask
         ports:
-        - containerPort: 8080
+        - containerPort: 5000
           protocol: TCP
       restartPolicy: Always
-      schedulerName: default-scheduler
-      terminationGracePeriodSeconds: 30

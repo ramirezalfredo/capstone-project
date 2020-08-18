@@ -20,13 +20,16 @@ $ kubectl get svc
 $ kubectl get all -A
 ```
 
-## Deploy ingress controller and external-dns
+## Deploy ALB Ingress Controller and external-dns
 
 Both add-ons can be deployed by using the following script:
 
 ```sh
 $ ./deploy-addons.sh
 ```
+
+### More information
+
 For the ALB ingress controller setup, follow these instructions:
 
 * https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/controller/setup/
@@ -34,10 +37,12 @@ For the ALB ingress controller setup, follow these instructions:
 For `external-dns`, Policy document and Role has been deployed according to:
 
 * https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md
-* For security reasons, follow the instructions in the following documents:
-    * https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html
-    * https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html
-    * https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
+
+For both cases, IAM role assigment was done with the instructions in the following documents:
+
+* https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html
+* https://docs.aws.amazon.com/eks/latest/userguide/create-service-account-iam-policy-and-role.html
+* https://docs.aws.amazon.com/eks/latest/userguide/specify-service-account-role.html
 
 Alternate documents:
 

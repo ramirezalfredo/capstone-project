@@ -5,9 +5,6 @@ pipeline {
     }
     stages {
         stage('Linting App and Dockerfile') {
-            when {
-                branch 'development'
-            }
             steps {
                 echo 'Linting Python code and Dockerfile'
                 sh 'pytlint *.py'
@@ -15,34 +12,42 @@ pipeline {
                 sh 'hadolint Dockerfile'
             }
         }
-        stage('Security Scan') {
-            when {
-                branch 'staging'
-            }
-            steps {
-                echo 'Starting security scan for the Docker image'
-                // aquaMicroscanner imageName: 'alpine:latest', notCompliesCmd: 'exit 1', onDisallowed: 'fail', outputFormat: 'html'
-                sh 'trivy --exit-code 0 --no-progress spring-petclinic:${BUILD_NUMBER}'
-            }
-        }
         stage('Docker Build and Push to ECR') {
-            when {
-                branch 'deployment'
-            }
             steps {
                 echo 'Uploading container to ECR with AWS creds'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
                         echo 'Building Docker container'
-                        docker build -t spring-petclinic:${BUILD_NUMBER} .
+                        docker build -t hello-flask:${BUILD_NUMBER} .
                         aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 866421524471.dkr.ecr.us-east-2.amazonaws.com
-                        docker tag spring-petclinic:${BUILD_NUMBER} 866421524471.dkr.ecr.us-east-2.amazonaws.com/spring-petclinic:${BUILD_NUMBER}
-                        docker push 866421524471.dkr.ecr.us-east-2.amazonaws.com/spring-petclinic:${BUILD_NUMBER}
+                        docker tag hello-flask:${BUILD_NUMBER} 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}
+                        docker push 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}
                     '''
                 }
             }
         }
+        stage('Security Scan') {
+            steps {
+                echo 'Starting security scan for the Docker image'
+                // aquaMicroscanner imageName: 'alpine:latest', notCompliesCmd: 'exit 1', onDisallowed: 'fail', outputFormat: 'html'
+                sh 'trivy --exit-code 0 --no-progress hello-flask:${BUILD_NUMBER}'
+            }
+        }
+        stage('Deploy to Development') {
+            when {
+                branch 'development'
+            }
+            steps {
+                echo ''
+                withAWS(region:'us-east-2',credentials:'aws-static') {
+                    sh 'kubectl apply -f kubernetes/*'
+                }
+            }
+        }
         stage('Deploy Green Environment') {
+            when {
+                branch 'production'
+            }
             steps {
                 echo 'Launching the EKS stack...'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
@@ -58,12 +63,15 @@ pipeline {
                     sleep(120) {
                         // on interrupt do
                     }
-                    sh 'kubectl create deployment spring-petclinic-${BUILD_NUMBER} --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/spring-petclinic:${BUILD_NUMBER}'
+                    sh 'kubectl create deployment hello-flask-${BUILD_NUMBER} --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}'
                     // upgrate ingress to prepare the green rule-set
                 }
             }
         }
         stage('Test Green Environment') {
+            when {
+                branch 'production'
+            }
             steps {
                 echo 'Testing Green Environment'
                 // curl blue ingress
@@ -74,6 +82,9 @@ pipeline {
             }
         }
         stage('Switch to Green Environment') {
+            when {
+                branch 'production'
+            }
             steps {
                 // change ingress
                 echo 'Switch to Green Environment'
@@ -83,6 +94,9 @@ pipeline {
             }
         }
         stage('Remove Blue Environment') {
+            when {
+                branch 'production'
+            }
             steps {
                 echo 'Remove Blue Environment Stack'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
