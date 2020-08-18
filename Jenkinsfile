@@ -38,7 +38,9 @@ pipeline {
                 branch 'development'
             }
             steps {
-                echo ''
+                echo 'Deploying to development namespace'
+                sh 'env'
+                sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh 'kubectl apply -f kubernetes/*'
                 }
