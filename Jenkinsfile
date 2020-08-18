@@ -42,8 +42,10 @@ pipeline {
                 sh 'env'
                 sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
-                    sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/deployment.yaml'
-                    sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/service.yaml'
+                    //sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/deployment.yaml'
+                    //sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/service.yaml'
+                    sh 'kubectl -n $BRANCH_NAME run hello-flask --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER} --port=5000'
+                    sh 'kubectl -n $BRANCH_NAME expose deployment hello-flask --port=80 --target-port=5000'
                 }
             }
         }
