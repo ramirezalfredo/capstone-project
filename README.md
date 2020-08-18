@@ -54,6 +54,11 @@ Alternate documents:
 * kubectl create ns production
 * kubectl create ns development
 
+## Deploy initial development environment
+
+* kubectl -n development run hello-flask --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER} --port=5000
+* kubectl -n development expose deployment hello-flask --port=80 --target-port=5000
+
 ## Testing the development environment
 
 * kubectl -n development port-forward svc/hello-flask 8080:80

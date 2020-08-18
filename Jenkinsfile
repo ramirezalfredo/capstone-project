@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         KUBECONFIG = credentials('kube-config')
+        REGISTRY_URI = '866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask'
     }
     stages {
         stage('Linting App and Dockerfile') {
@@ -20,8 +21,8 @@ pipeline {
                         echo 'Building Docker container'
                         docker build -t hello-flask:${BUILD_NUMBER} .
                         aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 866421524471.dkr.ecr.us-east-2.amazonaws.com
-                        docker tag hello-flask:${BUILD_NUMBER} 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}
-                        docker push 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}
+                        docker tag hello-flask:${BUILD_NUMBER} $REGISTRY_URI:${BUILD_NUMBER}
+                        docker push $REGISTRY_URI:${BUILD_NUMBER}
                     '''
                 }
             }
@@ -38,14 +39,12 @@ pipeline {
                 branch 'development'
             }
             steps {
-                echo 'Deploying to development namespace'
-                sh 'env'
+                echo 'Performing Rolling Update'
                 sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
+                sh 'cat kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
-                    //sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/deployment.yaml'
-                    //sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/service.yaml'
-                    sh 'kubectl -n $BRANCH_NAME run hello-flask --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER} --port=5000'
-                    sh 'kubectl -n $BRANCH_NAME expose deployment hello-flask --port=80 --target-port=5000'
+                    sh 'kubectl -n $BRANCH_NAME set image deployment/hello-flask $REGISTRY_URI:${BUILD_NUMBER} --record'
+                    sh ''
                 }
             }
         }
@@ -68,7 +67,7 @@ pipeline {
                     sleep(120) {
                         // on interrupt do
                     }
-                    sh 'kubectl create deployment hello-flask-${BUILD_NUMBER} --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER}'
+                    sh 'kubectl create deployment hello-flask-${BUILD_NUMBER} --image=$REGISTRY_URI:${BUILD_NUMBER}'
                     // upgrate ingress to prepare the green rule-set
                 }
             }
