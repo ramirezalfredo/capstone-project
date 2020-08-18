@@ -7,7 +7,7 @@ pipeline {
         stage('Linting App and Dockerfile') {
             steps {
                 echo 'Linting Python code and Dockerfile'
-                sh 'pylint *.py'
+                sh 'pylint --disable=C0114,C0116 *.py'
                 echo 'Running hadolint'
                 sh 'hadolint Dockerfile'
             }
