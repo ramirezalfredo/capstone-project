@@ -42,7 +42,8 @@ pipeline {
                 sh 'env'
                 sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
-                    sh 'kubectl apply -f kubernetes/*'
+                    sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/deployment.yaml'
+                    sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/service.yaml'
                 }
             }
         }
