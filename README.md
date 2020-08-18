@@ -49,6 +49,14 @@ Alternate documents:
 * https://medium.com/swlh/amazon-eks-setup-external-dns-with-oidc-provider-and-kube2iam-f2487c77b2a1
 * https://medium.com/@marcincuber/amazon-eks-with-oidc-provider-iam-roles-for-kubernetes-services-accounts-59015d15cb0c
 
+## Create the Kubernetes namespaces
+
+* kubectl create ns production
+* kubectl create ns development
+
+## Testing the development environment
+
+* kubectl -n development port-forward svc/hello-flask 8080:80
 
 
 To add more parameters to the parameters.json file:
