@@ -43,7 +43,7 @@ pipeline {
                 sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
                 sh 'cat kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
-                    sh 'kubectl -n $BRANCH_NAME set image deployment/hello-flask $REGISTRY_URI:${BUILD_NUMBER} --record'
+                    sh 'kubectl -n $BRANCH_NAME set image deployment/hello-flask hello-flask=$REGISTRY_URI:${BUILD_NUMBER} --record'
                     sh ''
                 }
             }
