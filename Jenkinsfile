@@ -91,8 +91,10 @@ pipeline {
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
                     # sleep 90
-                    curl -v http://prod.devopsmaster.cloud/blue
-                    curl -v http://prod.devopsmaster.cloud/green
+                    echo 'Testing blue environment'
+                    curl -v http://prod.devopsmaster.cloud
+                    echo 'Testing green environment'
+                    curl -v http://green.devopsmaster.cloud
                     '''
                 }
             }
@@ -102,25 +104,20 @@ pipeline {
                 branch 'production'
             }
             steps {
-                // switch blue to green in ingress
                 echo 'Switch to Green Environment'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
-                    sed -i "s/0/$BUILD_NUMBER/g" kubernetes/ingress-blue.yaml
+                    GREEN_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=green -o json | jq -r '.items[].metadata.name')
+                    sed -i "s/hello-flask-0/hello-flask-$BUILD_NUMBER/g" kubernetes/ingress-blue.yaml
                     kubectl -n $BRANCH_NAME apply -f  kubernetes/ingress-blue.yaml
-                    kubectl -n $BRANCH_NAME delete  deploy -l role=blue
+                    sleep 10
+                    kubectl -n $BRANCH_NAME delete deploy -l role=blue
                     kubectl -n $BRANCH_NAME delete service -l role=blue
-                    kubectl -n $BRANCH_NAME patch  service -l role=green --type='json' -p='[{"op": "replace", "path": "/metadata/labels/role", "value": "blue"}]'
-                    kubectl -n $BRANCH_NAME patch   deploy -l role=green --type='json' -p='[{"op": "replace", "path": "/metadata/labels/role", "value": "blue"}]'
+                    kubectl -n $BRANCH_NAME patch service $GREEN_NAME --type='json' -p='[{"op": "replace", "path": "/metadata/labels/role", "value": "blue"}]'
+                    kubectl -n $BRANCH_NAME patch deploy $GREEN_NAME --type='json' -p='[{"op": "replace", "path": "/metadata/labels/role", "value": "blue"}]'
                     kubectl -n $BRANCH_NAME get all -l role=blue
-                    '''
-                    script {
-                        env.BLUE = sh(script: 'aws cloudformation describe-stacks | jq -r .Stacks[1].StackName', returnStdout: true).trim()
-                        echo "LS = ${env.BLUE}"
-                    }
-                    sh '''
-                        aws cloudformation delete-stack \
-                          --stack-name ${BLUE} --region us-east-2
+                    BLUE_STACK=$(aws cloudformation describe-stacks | jq -r .Stacks[1].StackName)
+                    aws cloudformation delete-stack --stack-name ${BLUE_STACK} --region us-east-2
                     '''
                 }
             }
