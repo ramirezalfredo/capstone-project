@@ -52,6 +52,10 @@ pipeline {
             steps {
                 echo 'Launching the EKS stack...'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
+                    // script {
+                    //     env.BLUE_NAME = sh(script: 'kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r \'.items[].metadata.name\'', returnStdout: true).trim()
+                    //     echo "LS = ${env.BLUE_NAME}"
+                    // }
                     sh '''
                         sed -i "s/build-0/build-$BUILD_NUMBER/g" nodegroup/parameters.json
                         aws cloudformation create-stack \
@@ -61,15 +65,9 @@ pipeline {
                             --template-body file://nodegroup/eks-nodegroup-bg.yaml \
                             --region us-east-2
                         kubectl -n $BRANCH_NAME get all -l role=blue
-                    '''
-                    sleep(120) {
-                        // on interrupt do
-                    }
-                    script {
-                        env.BLUE_NAME = sh(script: 'kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r \'.items[].metadata.name\'', returnStdout: true).trim()
-                        echo "LS = ${env.BLUE}"
-                    }
-                    sh '''
+                        sleep 120
+
+                        BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[].metadata.name')
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/deployment-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/deployment-green.yaml
 
