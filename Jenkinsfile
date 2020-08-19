@@ -92,7 +92,7 @@ pipeline {
                 echo 'Testing Green Environment'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
-                    # sleep 90
+                    sleep 120
                     echo 'Testing blue environment'
                     curl -v http://prod.devopsmaster.cloud
                     echo 'Testing green environment'

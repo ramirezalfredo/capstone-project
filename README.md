@@ -5,6 +5,10 @@ For this project, I've decided to perform blue/green deployments by deploying a 
 
 ## EKS CLuster Deployment
 
+Most of the CloudFormation templates for Cluster deployment comes from:
+
+* https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html (Using CloudFormation Templates and the Portal, but I took a different approach like Nested Templates)
+
 I'm deploying the cluster outside of the Jenkins pipeline for saving some time on Control Plane deployment and also to have some components like Ingress Controller and External DNS available for application deployment in the pipeline.
 
 To deploy the cluster:
