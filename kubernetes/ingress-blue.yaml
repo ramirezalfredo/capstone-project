@@ -12,7 +12,6 @@ spec:
     - host: prod.devopsmaster.cloud
       http:
         paths:
-          - path: /
-            backend:
+          - backend:
               serviceName: hello-flask-0
               servicePort: 80
