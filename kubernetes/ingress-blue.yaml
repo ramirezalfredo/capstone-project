@@ -2,7 +2,6 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: hello-flask
-  namespace: development
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -15,13 +14,5 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: hello-flask
-              servicePort: 80
-          - path: /
-            backend:
-              serviceName: hello-flask
-              servicePort: 80
-          - path: /
-            backend:
-              serviceName: hello-flask
+              serviceName: hello-flask-0
               servicePort: 80

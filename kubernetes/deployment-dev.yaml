@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: hello-flask
-    role: blue
   name: hello-flask
 spec:
   selector:
@@ -13,7 +12,6 @@ spec:
     metadata:
       labels:
         app: hello-flask
-        role: blue
     spec:
       containers:
       - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:TAG

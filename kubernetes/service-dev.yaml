@@ -3,7 +3,6 @@ kind: Service
 metadata:
   labels:
     app: hello-flask
-    role: blue
   name: hello-flask
 spec:
   ports:

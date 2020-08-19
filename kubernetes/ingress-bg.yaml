@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello-flask
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: Environment=dev,Team=test
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  rules:
+    - host: prod.devopsmaster.cloud
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: BLUE_NAME
+              servicePort: 80
+          - path: /blue
+            backend:
+              serviceName: BLUE_NAME
+              servicePort: 80
+          - path: /green
+            backend:
+              serviceName: hello-flask-GREEN
+              servicePort: 80
