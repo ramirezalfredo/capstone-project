@@ -65,7 +65,7 @@ pipeline {
                             --template-body file://nodegroup/eks-nodegroup-bg.yaml \
                             --region us-east-2
                         kubectl -n $BRANCH_NAME get all -l role=blue
-                        sleep 120
+                        sleep 90
 
                         BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[].metadata.name')
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/deployment-green.yaml
@@ -79,9 +79,6 @@ pipeline {
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/ingress-bg.yaml
                         kubectl -n $BRANCH_NAME get all -l role=green
                     '''
-                    sleep(120) {
-                        // on interrupt do
-                    }
                 }
             }
         }
@@ -93,6 +90,7 @@ pipeline {
                 echo 'Testing Green Environment'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
+                    # sleep 90
                     curl -v http://prod.devopsmaster.cloud/blue
                     curl -v http://prod.devopsmaster.cloud/green
                     '''
