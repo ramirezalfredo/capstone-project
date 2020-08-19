@@ -65,9 +65,11 @@ pipeline {
                     sleep(120) {
                         // on interrupt do
                     }
+                    script {
+                        env.BLUE_NAME = sh(script: 'kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r \'.items[].metadata.name\'', returnStdout: true).trim()
+                        echo "LS = ${env.BLUE}"
+                    }
                     sh '''
-                        BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[].metadata.name' )
-
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/deployment-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/deployment-green.yaml
 
