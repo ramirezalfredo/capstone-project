@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-flask-0
+    role: blue
+  name: hello-flask-0
+spec:
+  selector:
+    matchLabels:
+      app: hello-flask-0
+  template:
+    metadata:
+      labels:
+        app: hello-flask-0
+        role: blue
+    spec:
+      containers:
+      - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:3
+        imagePullPolicy: IfNotPresent
+        name: hello-flask
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+      nodeSelector:
+        node.kubernetes.io/nodegroup: build-0
