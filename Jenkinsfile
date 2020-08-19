@@ -40,8 +40,6 @@ pipeline {
             }
             steps {
                 echo 'Performing Rolling Update'
-                sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
-                sh 'cat kubernetes/deployment.yaml'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh 'kubectl -n $BRANCH_NAME set image deployment/hello-flask hello-flask=$REGISTRY_URI:${BUILD_NUMBER} --record'
                 }
@@ -55,18 +53,19 @@ pipeline {
                 echo 'Launching the EKS stack...'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
-                        sed -i "s/BUILD/build-$BUILD_NUMBER/g" cloudformation/parameters.json
+                        sed -i "s/build-0/build-$BUILD_NUMBER/g" nodegroup/parameters.json
                         aws cloudformation create-stack \
                             --capabilities CAPABILITY_IAM \
                             --stack-name CapstoneEKS-Workers-Build-${BUILD_NUMBER} \
-                            --parameters file://cloudformation/parameters.json \
-                            --template-body file://cloudformation/eks-nodegroup-bg.yaml \
+                            --parameters file://nodegroup/parameters.json \
+                            --template-body file://nodegroup/eks-nodegroup-bg.yaml \
                             --region us-east-2
                     '''
                     sleep(120) {
                         // on interrupt do
                     }
-                    sh 'kubectl create deployment hello-flask-${BUILD_NUMBER} --image=$REGISTRY_URI:${BUILD_NUMBER}'
+                    sh 'sed -i "s/TAG/$BUILD_NUMBER/g" kubernetes/deployment.yaml'
+                    sh 'kubectl -n $BRANCH_NAME apply -f kubernetes/deployment.yaml'
                     // upgrate ingress to prepare the green rule-set
                 }
             }
@@ -89,7 +88,7 @@ pipeline {
                 branch 'production'
             }
             steps {
-                // change ingress
+                // switch blue to green in ingress
                 echo 'Switch to Green Environment'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh 'kubectl get no'
@@ -105,7 +104,7 @@ pipeline {
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     // delete kubernetes blue deployment
                     // change role labels from green to blue
-                    script {
+                     script {
                         env.BLUE = sh(script: 'aws cloudformation describe-stacks | jq -r .Stacks[1].StackName', returnStdout: true).trim()
                         echo "LS = ${env.BLUE}"
                     }

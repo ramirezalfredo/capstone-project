@@ -20,6 +20,23 @@ $ kubectl get svc
 $ kubectl get all -A
 ```
 
+## Enabling IAM roles for service accounts on your cluster
+
+To create an IAM OIDC identity provider for your cluster with the AWS Management Console
+
+* Retrieve the OIDC issuer URL from the Amazon EKS console description of your cluster or use the following AWS CLI command.
+    ```sh
+    aws eks describe-cluster --name CapstoneEKS --query "cluster.identity.oidc.issuer" --output text
+    ```
+* Open the IAM console at https://console.aws.amazon.com/iam/.
+* In the navigation pane, choose Identity Providers, and then choose Create Provider.
+* For Provider Type, choose Choose a provider type, and then choose OpenID Connect.
+* For Provider URL, paste the OIDC issuer URL for your cluster.
+* For Audience, type `sts.amazonaws.com` and choose Next Step.
+* Verify that the provider information is correct, and then choose Create to create your identity provider.
+
+Update the Trust Relationship in `AlbIngressControllerRole` and `ExternalDnsRole` with the OIDC issuer value.
+
 ## Deploy ALB Ingress Controller and external-dns
 
 Both add-ons can be deployed by using the following script:
@@ -56,13 +73,15 @@ Alternate documents:
 
 ## Deploy initial development environment
 
-* kubectl -n development run hello-flask --image=866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:${BUILD_NUMBER} --port=5000
-* kubectl -n development expose deployment hello-flask --port=80 --target-port=5000
+* kubectl -n development apply -f kubernetes/deployment.yaml
+* kubectl -n development apply -f kubernetes/service.yaml
 
 ## Testing the development environment
 
 * kubectl -n development port-forward svc/hello-flask 8080:80
+* curl -v http://localhost:8080
 
+## Misc
 
 To add more parameters to the parameters.json file:
 

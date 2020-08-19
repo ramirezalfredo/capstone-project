@@ -3,15 +3,17 @@ kind: Deployment
 metadata:
   labels:
     app: hello-flask
+    role: blue
   name: hello-flask
 spec:
   selector:
     matchLabels:
-      app: hello-flash
+      app: hello-flask
   template:
     metadata:
       labels:
         app: hello-flask
+        role: blue
     spec:
       containers:
       - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:TAG
@@ -20,4 +22,5 @@ spec:
         ports:
         - containerPort: 5000
           protocol: TCP
-      restartPolicy: Always
+      nodeSelector:
+        node.kubernetes.io/nodegroup: build-0
