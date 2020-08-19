@@ -67,15 +67,16 @@ pipeline {
                         kubectl -n $BRANCH_NAME get all -l role=blue
                         sleep 90
 
-                        BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[].metadata.name')
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/deployment-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/deployment-green.yaml
 
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/service-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/service-green.yaml
 
+                        BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[0].metadata.name')
                         sed -i "s/BLUE_NAME/$BLUE_NAME/g" kubernetes/ingress-bg.yaml
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/ingress-bg.yaml
+                        cat kubernetes/ingress-bg.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/ingress-bg.yaml
                         kubectl -n $BRANCH_NAME get all -l role=green
                     '''
