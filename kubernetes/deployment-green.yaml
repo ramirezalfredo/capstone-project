@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello-flask-GREEN
+    role: green
+  name: hello-flask-GREEN
+spec:
+  selector:
+    matchLabels:
+      app: hello-flask-GREEN
+  template:
+    metadata:
+      labels:
+        app: hello-flask-GREEN
+        role: green
+    spec:
+      containers:
+      - image: 866421524471.dkr.ecr.us-east-2.amazonaws.com/hello-flask:GREEN
+        imagePullPolicy: IfNotPresent
+        name: hello-flask-GREEN
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+      nodeSelector:
+        node.kubernetes.io/nodegroup: build-GREEN

@@ -7,7 +7,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: hello-flash
+      app: hello-flask
   template:
     metadata:
       labels:
@@ -20,4 +20,5 @@ spec:
         ports:
         - containerPort: 5000
           protocol: TCP
-      restartPolicy: Always
+      nodeSelector:
+        node.kubernetes.io/nodegroup: build-0
