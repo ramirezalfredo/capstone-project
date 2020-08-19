@@ -67,15 +67,17 @@ pipeline {
                         kubectl -n $BRANCH_NAME get all -l role=blue
                         sleep 90
 
-                        BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[].metadata.name')
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/deployment-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/deployment-green.yaml
 
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/service-green.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/service-green.yaml
 
+                        export BLUE_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=blue -o json | jq -r '.items[0].metadata.name')
+                        echo $BLUE_NAME
                         sed -i "s/BLUE_NAME/$BLUE_NAME/g" kubernetes/ingress-bg.yaml
                         sed -i "s/GREEN/$BUILD_NUMBER/g"  kubernetes/ingress-bg.yaml
+                        cat kubernetes/ingress-bg.yaml
                         kubectl -n $BRANCH_NAME apply -f  kubernetes/ingress-bg.yaml
                         kubectl -n $BRANCH_NAME get all -l role=green
                     '''
@@ -107,7 +109,7 @@ pipeline {
                 echo 'Switch to Green Environment'
                 withAWS(region:'us-east-2',credentials:'aws-static') {
                     sh '''
-                    GREEN_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=green -o json | jq -r '.items[].metadata.name')
+                    export GREEN_NAME=$(kubectl -n $BRANCH_NAME get svc -l role=green -o json | jq -r '.items[].metadata.name')
                     sed -i "s/hello-flask-0/hello-flask-$BUILD_NUMBER/g" kubernetes/ingress-blue.yaml
                     kubectl -n $BRANCH_NAME apply -f  kubernetes/ingress-blue.yaml
                     sleep 10
